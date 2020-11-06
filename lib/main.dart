@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 
 void main() async {
@@ -27,6 +29,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
+  final dbref = FirebaseDatabase.instance.reference();
 
 
 var question="";
@@ -37,20 +40,29 @@ var count=0;
 
 
 void getans(String ans){
-if(ans == "riyazat" || ans =="srk"|| ans =="anil"){
- setState(() {
-   score =score +10;
 
- });
+  var a,b;
+  dbref.once().then((value) {
+    a = value.value["questions"];
+   b  =  a[count-1]["ans"];
 
-}
-else{
-  setState(() {
-    score =score +0;
+   if(ans == a[count-1][b] ){
+     print(ans);
+     setState(() {
+       score =score +10;
 
-  });
+     });
+   }
 
-}
+   else{
+     setState(() {
+       score =score +0;
+     });
+   }
+  } );
+
+
+
 }
 
 
@@ -58,36 +70,30 @@ else{
 
 
   String nextQuestion(){
-    CollectionReference collectionReference = FirebaseFirestore.instance
-        .collection('question');
-    collectionReference.snapshots().listen((event) {
-     if(count< event.docs.length) {
-       setState(() {
-         var a = (event.docs[count].data());
-         question = a["question1"];
-         option1 = a["option1"];
-         option2 = a["option2"];
-         count++;
-       });
-     }
-     else{
-
-             Map<String,dynamic> finalScore ={"score":score};
+  dbref.once().then((value) {
+      if(count<value.value["questions"].length) {
+        setState(() {
+         var a = value.value["questions"];
+          question = a[count]["question"];
+          option1 = a[count]["option1"];
+          option2 = a[count]["option2"];
+          count++;
+        });
+      }
+      else{
+                     Map<String,dynamic> finalScore ={"score":score};
       CollectionReference collectionReference = FirebaseFirestore.instance
           .collection('score');
       collectionReference.add(finalScore);
-             setState(() {
+                     setState(() {
                count=0;
                score=0;
              });
              nextQuestion();
+      }
     }
-
-    });
-
-
-
-  }
+    );
+ }
 
   @override
   void initState() {
@@ -99,142 +105,164 @@ else{
     super.initState();
   }
 
+
+
+
+Widget topNotchButton({Color color,String text}){
+  return RaisedButton(
+      color: color,
+      child: Text(text,style: TextStyle(color: Colors.white),),
+      onPressed: (){},
+      shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0))
+  );
+}
+
+
+Widget optionButton({String text}){
+  return Container(
+    width: MediaQuery.of(context).size.width -20,
+    height: 60,
+    child: Card(
+
+      elevation: 20.0,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: (){
+          getans(text);
+          setState(() {
+            nextQuestion();
+            scrollController.animateTo(0, duration: Duration(milliseconds: 3000), curve: Curves.fastOutSlowIn);
+
+          });
+        },
+        child: Center(
+          child: Text(
+            text,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+Widget bottomNotch({IconData icon}){
+  return  Expanded(
+    child: Icon(
+      icon,
+      color: Colors.white,
+      size: 24.0,
+      semanticLabel: 'Text to announce in accessibility modes',
+    ),
+  );
+}
+  ScrollController scrollController =  ScrollController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
      backgroundColor: Color(0xFF311a2e),
-      body: Column(
-        children: [
+      body: SafeArea(
+        child: Column(
+          children: [
 
-          Expanded(
-            child: Container(
-              margin:EdgeInsets.only(top: 150.0,bottom: 50) ,
-              decoration: BoxDecoration(
-                  color: Color(0xFFf2f2f2),
-                  borderRadius: BorderRadius.only(topRight:  Radius.circular(40),topLeft:Radius.circular(40) ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child:
 
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(children: [
+
+
+                  topNotchButton(color: Colors.yellow[800],text:"UPSC"),
+                  SizedBox(width: 15,),
+                  topNotchButton(color: Color(0xFF311a2e),text:"NEET"),
+                  SizedBox(width: 15,),
+                  topNotchButton(color: Color(0xFF311a2e),text:"SBI CLERK"),
+                  SizedBox(width: 15,),
+                  topNotchButton(color: Color(0xFF311a2e),text:"BANKING PO"),
+                  SizedBox(width: 15,),
+                  topNotchButton(color: Color(0xFF311a2e),text:"CDS"),
+
+],),
               ),
-              child: (
-              Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+            ),
 
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 50),
-                  child: Text(question,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
+
+            Expanded(
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                margin:EdgeInsets.only(top: 50.0,bottom: 50) ,
+                decoration: BoxDecoration(
+                    color: Color(0xFFf2f2f2),
+                    borderRadius: BorderRadius.only(topRight:  Radius.circular(40),topLeft:Radius.circular(40) ),
+
                 ),
+                child: SingleChildScrollView(
+controller:  scrollController,
+                  scrollDirection: Axis.vertical,
+                  child: Container(
+                    height: 800,
+                    child: (
+                    Column(
 
-                SizedBox(height: 20),
+                        crossAxisAlignment: CrossAxisAlignment.center,
 
-              Card(
-                  elevation: 20.0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              child: InkWell(
-              onTap: (){
-                getans(option1);
-                setState(() {
-                  nextQuestion();
-                });
-              },
-            child: Padding(
-            padding: const EdgeInsets.only(left: 170,right: 170,top: 15,bottom: 15),
-            child: Text(
-              option1,
-            ),
-            ),
-    ),
-    ),
-
-
-
-
-                SizedBox(height: 30),
-
-                Card(
-                  elevation: 20.0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: InkWell(
-                    onTap: (){
-                      getans(option2);
-                      setState(() {
-                        nextQuestion();
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 170,right: 170,top: 15,bottom: 15),
-                      child: Text(
-                        option2,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 50,left: 20,right: 20),
+                        child: Text(question.replaceAll("\\n", "\n"),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
                       ),
+
+                      SizedBox(height: 20),
+                      optionButton(text: option1),
+                      SizedBox(height: 30),
+                      optionButton(text: option2),
+                      SizedBox(height: 30),
+                      optionButton(text: option1),
+                      SizedBox(height: 30),
+                      optionButton(text: option2),
+                      SizedBox(height: 30),
+                      Spacer(),
+
+
+
+
+                    Column(
+                      children: [
+                      Text("TOTAL"),
+                        Container(
+                            width: MediaQuery. of(context). size. width,
+                            color: Colors.blue,
+                            child:
+                            Center(child: Text(score.toString(),)),),
+SizedBox(height: 20)
+                    ],),
+                    ],
+                    )
+
                     ),
                   ),
                 ),
-SizedBox(height: 30),
-
-
-
-
-Spacer(),
-//              Column(
-//
-//                children: [
-//                Text("TOTAL"),
-//                  Container(
-//                      width: MediaQuery. of(context). size. width,
-//                      color: Colors.blue,
-//                      child:
-//                      Center(child: Text(score.toString(),)),),
-//SizedBox(height: 20)
-//              ],),
-              ],
-              )
-
               ),
             ),
-          ),
 
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Icon(
-                    Icons.system_update_alt,
-                    color: Colors.white,
-                    size: 24.0,
-                    semanticLabel: 'Text to announce in accessibility modes',
-                  ),
-                ),
-                Expanded(
-                  child: Icon(
-                    Icons.favorite,
-                    color: Colors.white,
-                    size: 24.0,
-                    semanticLabel: 'Text to announce in accessibility modes',
-                  ),
-                ),
-                Expanded(
-                  child: Icon(
-                    Icons.filter_none,
-                    color: Colors.white,
-                    size: 24.0,
-                    semanticLabel: 'Text to announce in accessibility modes',
-                  ),
-                ),
-                Expanded(
-                  child: Icon(
-                    Icons.settings,
-                    color: Colors.white,
-                    size: 24.0,
-                    semanticLabel: 'Text to announce in accessibility modes',
-                  ),
-                ),
-              ],
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+
+                  bottomNotch(icon : Icons.system_update_alt),
+                  bottomNotch(icon : Icons.favorite),
+                  bottomNotch(icon : Icons.filter_none),
+                  bottomNotch(icon : Icons.settings),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 50,)
-        ],
+            SizedBox(height: 50,)
+          ],
+        ),
       ),
 
     );
