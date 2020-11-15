@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_app223/NewScreen.dart';
+import 'dart:math';
 
 
 class HomeScreen extends StatefulWidget {
@@ -21,15 +22,18 @@ class _HomeScreenState extends State<HomeScreen> {
   var score=0;
   var count=0;
   String buttonName ="UPSC";
+  var arr=[];
 
   void getans(String ans){
 
     var a,b;
     dbref.once().then((value) {
       a = value.value[buttonName];
-      b  =  a[count-1]["ans"];
+      b  =  a[arr[count-1]]["ans"];
+      print(a);
+      print(b);
 
-      if(ans == a[count-1][b] ){
+      if(ans == a[arr[count-1]][b] ){
         print(ans);
         setState(() {
           score =score +10;
@@ -54,13 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String nextQuestion(){
     dbref.once().then((value) {
-      if(count<value.value[buttonName].length) {
+      if(count<arr.length) {
         setState(() {
-          print(buttonName);
+
           var a = value.value[buttonName];
-          question = a[count]["question"];
-          option1 = a[count]["option1"];
-          option2 = a[count]["option2"];
+          question = a[arr[count]]["question"];
+          option1 = a[arr[count]]["option1"];
+          option2 = a[arr[count]]["option2"];
           count++;
         });
       }
@@ -84,6 +88,24 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       count=0;
       score=0;
+
+
+
+      CollectionReference collectionReference = FirebaseFirestore.instance
+          .collection('DisplayQnA');
+      collectionReference.snapshots().listen((event) {
+        var q=event.docs[0].data();
+        var w = q["TotalQuestions"];
+        print(w);//5
+        for(int i=0;i<w;i++) {
+          Random random = new Random();
+          int randomNumber = random.nextInt(10)+1;
+          arr.add(randomNumber);
+
+        }
+        print(arr);
+      });
+
     });
     nextQuestion();
     super.initState();
@@ -102,9 +124,10 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             buttonName=text;
             count=0;
-            score=0;
             nextQuestion();
             scrollController.animateTo(0, duration: Duration(milliseconds: 3000), curve: Curves.fastOutSlowIn);
+
+
           });
         },
         shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0))
