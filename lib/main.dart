@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'login.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'package:flutter_app223/HomeScreen.dart';
@@ -41,33 +41,24 @@ class _MyAppState extends State<MyApp> {
 
 
 
-  nextPage() async{
 
-    bool visitedFlag = await getVIsitingFlag();
-    setVIsitingFlag();
-    if (visitedFlag == true) {
-      Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => HomeScreen()));
-    }
-    else {
-      Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => NewScreen()));
-      var questionNumbers =0;
-      Map<String,dynamic> Total ={"TotalQuestions":questionNumbers};
-      CollectionReference collectionReference = FirebaseFirestore.instance
-          .collection('DisplayQnA');
-
-      collectionReference.add(Total);
-    }
-  }
+Future<void> rememberMe() async{
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  var uidd = preferences.getString('uid');
+  Future.delayed(Duration(seconds: 5)).then((response) {
+    Navigator.push(context,
+      MaterialPageRoute(builder: (context) => uidd==null ? MyLoginPage() :HomeScreen(uidd)),
+    );
+  });
+}
 
 
 @override
   void initState() {
+rememberMe();
 
-  Future.delayed(Duration(seconds: 5)).then((response) {
-    nextPage();
-  });
+
+
     super.initState();
   }
 
@@ -77,7 +68,7 @@ class _MyAppState extends State<MyApp> {
       backgroundColor: Color(0xFF311a2e),
       body: SafeArea(
         child:
-     CircularProgressIndicator(),
+     Center(child: CircularProgressIndicator()),
     ),
     );
   }
@@ -85,13 +76,3 @@ class _MyAppState extends State<MyApp> {
 
 
 
- getVIsitingFlag() async{
-SharedPreferences preferences = await SharedPreferences.getInstance();
-bool alreadyVisited = preferences.getBool('alreadyVisited') ?? false ;
-return alreadyVisited;
-}
-
- setVIsitingFlag()async{
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-preferences.setBool('alreadyVisited', true);
-}

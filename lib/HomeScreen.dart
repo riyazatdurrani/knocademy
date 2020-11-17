@@ -4,11 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_app223/NewScreen.dart';
+import 'package:flutter_app223/logout.dart';
 import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class HomeScreen extends StatefulWidget {
-
+String uid;
+HomeScreen(String uid){
+  this.uid = uid;
+}
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -24,33 +29,28 @@ class _HomeScreenState extends State<HomeScreen> {
   String buttonName ="UPSC";
   var arr=[];
 
-  void getans(String ans){
 
-    var a,b;
+
+  void getans(String ans){
+ var a,b;
     dbref.once().then((value) {
       a = value.value[buttonName];
       b  =  a[arr[count-1]]["ans"];
       print(a);
       print(b);
-
-      if(ans == a[arr[count-1]][b] ){
+if(ans == a[arr[count-1]][b] ){
         print(ans);
         setState(() {
           score =score +10;
-
-        });
+ });
       }
-
-      else{
+ else{
         setState(() {
           score =score +0;
         });
       }
     } );
-
-
-
-  }
+ }
 
 
 
@@ -60,8 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
     dbref.once().then((value) {
       if(count<arr.length) {
         setState(() {
-
-          var a = value.value[buttonName];
+ var a = value.value[buttonName];
           question = a[arr[count]]["question"];
           option1 = a[arr[count]]["option1"];
           option2 = a[arr[count]]["option2"];
@@ -72,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Map<String,dynamic> finalScore ={"score":score};
         CollectionReference collectionReference = FirebaseFirestore.instance
             .collection('score');
-        collectionReference.add(finalScore);
+        collectionReference.doc(widget.uid).collection("indivisualscore").add(finalScore);
         setState(() {
           count=0;
           score=0;
@@ -84,29 +83,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+
+
+
   void initState() {
+
+
     setState(() {
+
       count=0;
       score=0;
-
-
-
-      CollectionReference collectionReference = FirebaseFirestore.instance
+CollectionReference collectionReference = FirebaseFirestore.instance
           .collection('DisplayQnA');
-      collectionReference.snapshots().listen((event) {
-        var q=event.docs[0].data();
+      collectionReference.doc(widget.uid).snapshots().listen((event) {
+        var q=event.data();
         var w = q["TotalQuestions"];
-        print(w);//5
+        print(w);
         for(int i=0;i<w;i++) {
           Random random = new Random();
           int randomNumber = random.nextInt(10)+1;
           arr.add(randomNumber);
-
-        }
+ }
         print(arr);
       });
-
-    });
+ });
     nextQuestion();
     super.initState();
   }
@@ -122,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(text,style: TextStyle(color: Colors.white),),
         onPressed: (){
           setState(() {
+            print(widget.uid);
             buttonName=text;
             count=0;
             nextQuestion();
@@ -165,27 +166,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   Widget bottomNotch({IconData icon, int  screen}){
-
-    return  Expanded(
-
-      child: GestureDetector(
-
-        onTap: (){
-
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => screen == 1? NewScreen():null ));
+ return  Expanded(
+ child: GestureDetector(
+ onTap: (){
+ Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => screen == 1? NewScreen(widget.uid): screen == 2 ? MyLogoutPage() : null  ));
         },
         child: Icon(
           icon,
-
-          color: Colors.white,
+ color: Colors.white,
           size: 24.0,
           semanticLabel: 'Text to announce in accessibility modes',
-
-        ),
+),
       ),
     );
-  }
+}
+
   ScrollController scrollController =  ScrollController();
+String uid;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -281,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
 
-                  bottomNotch(icon : Icons.system_update_alt),
+                  bottomNotch(icon : Icons.system_update_alt, screen :2),
                   bottomNotch(icon : Icons.favorite),
                   bottomNotch(icon : Icons.filter_none),
                   bottomNotch(icon : Icons.settings, screen :1),
@@ -295,4 +293,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     );
   }
+}
+
+
+
+getVIsitingFlag() async{
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  bool alreadyVisited = preferences.getBool('alreadyVisited') ?? false ;
+  return alreadyVisited;
+}
+
+setVIsitingFlag()async{
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  preferences.setBool('alreadyVisited', true);
 }

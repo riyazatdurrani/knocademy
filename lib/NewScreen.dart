@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app223/HomeScreen.dart';
 import 'package:flutter_app223/main.dart';
 class NewScreen extends StatefulWidget {
-
+  String uid;
+ NewScreen(String uid){
+    this.uid = uid;
+  }
   @override
   _NewScreenState createState() => _NewScreenState();
 }
@@ -42,10 +45,10 @@ class _NewScreenState extends State<NewScreen> {
                   Map<String,dynamic> Total ={"TotalQuestions":_currentSliderValue.toInt()};
                   CollectionReference collectionReference = FirebaseFirestore.instance
                       .collection('DisplayQnA');
-                  collectionReference.snapshots().listen((event) {
-                    event.docs[0].reference.update(Total);
+                  collectionReference.doc(widget.uid).snapshots().listen((event) {
+                    event.reference.update(Total);
                   });
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => HomeScreen() ));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => HomeScreen(widget.uid) ));
                   }),
             ],
           ),
