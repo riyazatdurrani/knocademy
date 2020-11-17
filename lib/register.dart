@@ -37,8 +37,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   nextPage(String uid) async{
 
+    SharedPreferences preferences = await SharedPreferences.getInstance();
     bool visitedFlag = await getVIsitingFlag();
     setVIsitingFlag();
+    preferences.setString('uid', uid);
     if (visitedFlag == true) {
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => HomeScreen(uid)));

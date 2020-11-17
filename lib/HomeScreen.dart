@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_app223/NewScreen.dart';
 import 'package:flutter_app223/logout.dart';
+import 'package:flutter_app223/userScore.dart';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -126,7 +127,7 @@ CollectionReference collectionReference = FirebaseFirestore.instance
             buttonName=text;
             count=0;
             nextQuestion();
-            scrollController.animateTo(0, duration: Duration(milliseconds: 3000), curve: Curves.fastOutSlowIn);
+            scrollController.animateTo(0, duration: Duration(milliseconds: 1000), curve: Curves.fastOutSlowIn);
 
 
           });
@@ -169,7 +170,7 @@ CollectionReference collectionReference = FirebaseFirestore.instance
  return  Expanded(
  child: GestureDetector(
  onTap: (){
- Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => screen == 1? NewScreen(widget.uid): screen == 2 ? MyLogoutPage() : null  ));
+ Navigator.of(context).push(MaterialPageRoute(builder: (context) => screen == 1? NewScreen(widget.uid): screen == 2 ? MyLogoutPage() : screen ==3? UserScore(widget.uid) : null  ));
         },
         child: Icon(
           icon,
@@ -259,7 +260,7 @@ String uid;
                               children: [
                                 Text("TOTAL"),
                                 Container(
-                                  width: MediaQuery. of(context). size. width,
+                                  width: MediaQuery. of(context). size.width,
                                   color: Colors.blue,
                                   child:
                                   Center(child: Text(score.toString(),)),),
@@ -280,7 +281,7 @@ String uid;
                 children: [
 
                   bottomNotch(icon : Icons.system_update_alt, screen :2),
-                  bottomNotch(icon : Icons.favorite),
+                  bottomNotch(icon : Icons.favorite,screen: 3),
                   bottomNotch(icon : Icons.filter_none),
                   bottomNotch(icon : Icons.settings, screen :1),
                 ],
