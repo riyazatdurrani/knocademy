@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app223/register.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'HomeScreen.dart';
 import 'NewScreen.dart';
@@ -42,21 +43,21 @@ class _MyLoginPageState extends State<MyLoginPage> {
     if (visitedFlag == true) {
 
       Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => HomeScreen(uid)));
+          MaterialPageRoute(builder: (context) => HomeScreen(uid,buttonName)));
     }
     else {
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => NewScreen(uid)));
-      var questionNumbers =0;
-      Map<String,dynamic> Total ={"TotalQuestions":questionNumbers};
-      CollectionReference collectionReference = FirebaseFirestore.instance
-          .collection('DisplayQnA');
-
-      collectionReference.doc(uid).set(Total);
+//      var questionNumbers =0;
+//      Map<String,dynamic> Total ={"TotalQuestions":questionNumbers};
+//      CollectionReference collectionReference = FirebaseFirestore.instance
+//          .collection('DisplayQnA');
+//
+//      collectionReference.doc(uid).set(Total);
     }
   }
 
-
+  String buttonName ="UPSC";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,6 +122,8 @@ class _MyLoginPageState extends State<MyLoginPage> {
     email: email, password: password);
     if(newUser != null){
       print(newUser.user.uid);
+//      Navigator.of(context).push(
+//          MaterialPageRoute(builder: (context) => HomeScreen(newUser.user.uid,buttonName)));
    nextPage(newUser.user.uid);
     setState(() {
       showProgress=false;
@@ -128,7 +131,25 @@ class _MyLoginPageState extends State<MyLoginPage> {
     }
     }
     catch(e){
-    print(e);
+      Alert(
+        context: context,
+        type: AlertType.error,
+        title: "LOGIN ALERT",
+        desc: (e.toString()).substring(30, e.toString().length),
+        buttons: [
+          DialogButton(
+
+            child: Text(
+              "BACK",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+            onPressed: () { Navigator.pop(context); setState(() {
+              showProgress=false;
+            });},
+            width: 120,
+          )
+        ],
+      ).show();
     }
 
                         },
@@ -147,14 +168,14 @@ class _MyLoginPageState extends State<MyLoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Don't Have an account? "),
+                        Text("Don't have an account? "),
                         GestureDetector(onTap:(){
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => MyHomePage()),
                           );
                         }, child:
-                        Text("CLICK HERE"),),
+                        Text("CLICK HERE",style: TextStyle(color: Colors.blue),),),
                       ],
                     ),
                   ],

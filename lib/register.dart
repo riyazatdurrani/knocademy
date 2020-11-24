@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'HomeScreen.dart';
 import 'NewScreen.dart';
@@ -30,10 +32,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool showProgress = false;
- String  name;
+ String  name="Anonymous";
  String password;
  String email;
   FirebaseAuth _auth = FirebaseAuth.instance;
+
+
+
 
   nextPage(String uid) async{
 
@@ -42,18 +47,25 @@ class _MyHomePageState extends State<MyHomePage> {
     setVIsitingFlag();
     preferences.setString('uid', uid);
     if (visitedFlag == true) {
+      Map<String,dynamic> Average ={"Average":0};
+      CollectionReference collectionReferencee = FirebaseFirestore.instance
+          .collection('score');
+      collectionReferencee.doc(uid).set(Average);
       Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => HomeScreen(uid)));
+          MaterialPageRoute(builder: (context) => NewScreen(uid)));
     }
     else {
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => NewScreen(uid)));
-      var questionNumbers =0;
-      Map<String,dynamic> Total ={"TotalQuestions":questionNumbers};
-      CollectionReference collectionReference = FirebaseFirestore.instance
-          .collection('DisplayQnA');
-
-      collectionReference.doc(uid).set(Total);
+//      var questionNumbers =0;
+//      Map<String,dynamic> Total ={"TotalQuestions":questionNumbers};
+//      CollectionReference collectionReference = FirebaseFirestore.instance
+//          .collection('DisplayQnA');
+//      collectionReference.doc(uid).set(Total);
+      Map<String,dynamic> Average ={"Average":0};
+      CollectionReference collectionReferencee = FirebaseFirestore.instance
+          .collection('score');
+      collectionReferencee.doc(uid).set(Average);
     }
   }
 
@@ -81,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       keyboardType: TextInputType.emailAddress,
                       textAlign: TextAlign.center,
                       onChanged: (value) {
-                        name=value;
+                        name=value.toUpperCase();
                       },
                       decoration: InputDecoration(
                           hintText: "Enter your Name",
@@ -125,14 +137,22 @@ class _MyHomePageState extends State<MyHomePage> {
                       borderRadius: BorderRadius.circular(32.0),
                       child: MaterialButton(
                         onPressed: () async{
-                          setState(() {
+                         name==null? CircularProgressIndicator(): setState(() {
                             showProgress=true;
                           });
+
                           try {
-                            final newUser = await _auth
-                                .createUserWithEmailAndPassword(
-                                email: email, password: password);
+                            final newUser = await _auth.createUserWithEmailAndPassword(email: email, password: password );
+//                            User firebaseUser = newUser.user;
+//                            firebaseUser.updateProfile( displayName: name);
+//                            print(firebaseUser.displayName);
+
                             if(newUser != null){
+                              Map<String,dynamic> Name ={"DisplayName":name};
+                              CollectionReference collectionReference = FirebaseFirestore.instance
+                                  .collection('DisplayQnA');
+                              collectionReference.doc(newUser.user.uid).set(Name);
+
                               nextPage(newUser.user.uid);
                               setState(() {
                                 showProgress=false;
@@ -140,7 +160,27 @@ class _MyHomePageState extends State<MyHomePage> {
                             }
                           }
                           catch(e){
-                          print(e);
+                           print(e);
+    Alert(
+    context: context,
+    type: AlertType.error,
+    title: "REGISTERATION ALERT",
+    desc: (e.toString()).substring(30, e.toString().length),
+    buttons: [
+    DialogButton(
+
+    child: Text(
+    "BACK",
+    style: TextStyle(color: Colors.white, fontSize: 20),
+    ),
+    onPressed: () { Navigator.pop(context); setState(() {
+    showProgress=false;
+    });},
+    width: 120,
+    )
+    ],
+    ).show();
+
                           }
                         },
                         minWidth: 200.0,
@@ -164,7 +204,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             MaterialPageRoute(builder: (context) => MyLoginPage()),
                           );
                         }, child:
-                        Text("CLICK HERE"),),
+                        Text("CLICK HERE",style: TextStyle(color: Colors.blue),),),
                       ],
                     ),
 

@@ -18,6 +18,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Title',
       home: MyApp(),
     );
@@ -45,9 +46,9 @@ class _MyAppState extends State<MyApp> {
 Future<void> rememberMe() async{
   SharedPreferences preferences = await SharedPreferences.getInstance();
   var uidd = preferences.getString('uid');
-  Future.delayed(Duration(seconds: 5)).then((response) {
+  Future.delayed(Duration(seconds: 1)).then((response) {
     Navigator.push(context,
-      MaterialPageRoute(builder: (context) => uidd==null ? MyLoginPage() :HomeScreen(uidd)),
+      MaterialPageRoute(builder: (context) => uidd==null ? MyLoginPage() :HomeScreen(uidd, buttonName)),
     );
   });
 }
@@ -61,7 +62,7 @@ rememberMe();
 
     super.initState();
   }
-
+String buttonName ="UPSC";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
